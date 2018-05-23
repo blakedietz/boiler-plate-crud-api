@@ -45,11 +45,12 @@ router.get("/", function(req, res) {
 });
 
 router.post("/", function(req, res) {
-  const { fooText } = req.body;
+  const { fooText, email } = req.body;
 
   Foo.create(
     {
-      fooText
+      fooText,
+      email
     },
     function(error, foo) {
       if (error) {
