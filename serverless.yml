@@ -1,0 +1,57 @@
+service: ns-foo-api
+
+custom:
+  tableName: 'foo-table-${self:provider.stage}'
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: us-west-2
+  profile: ns-foo-deploy-api
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - { "Fn::GetAtt": ["FooDynamoDBTable", "Arn" ] }
+  environment:
+    FOO_TABLE: ${self:custom.tableName}
+    ACCESS_KEY_ID: ${file(./config/secrets/lambda-credentials.json):accessKeyId}
+    SECRET_ACCESS_KEY: ${file(./config/secrets/lambda-credentials.json):secretAccessKey}
+
+functions:
+  app:
+    handler: src/index.handler
+    events:
+      - http:
+          path: v1/foos
+          method: get
+          cors: true
+      - http:
+          path: v1/foos
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    FooDynamoDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: fooId
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: fooId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.tableName}
