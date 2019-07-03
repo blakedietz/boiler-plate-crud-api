@@ -1,16 +1,18 @@
 const serverless = require("serverless-http");
 const bodyParser = require("body-parser");
 const express = require("express");
-const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
-const foos = require("./controllers/foos.controller");
+const exampleRoutes = require("./example/example.routes");
+const requestLogger = require("./logging/request.logger");
+const errorLogger = require("./logging/error.logger");
+const authorizationMiddleware = require("./middleware/authorization.middleware");
 
-app.use(morgan("combined"));
+app.use(requestLogger);
 app.use(cors());
-
 app.use(bodyParser.json({ strict: false }));
-
-app.use("/v1/foos", foos);
+app.use(authorizationMiddleware);
+app.use("/v1/example", exampleRoutes);
+app.use(errorLogger);
 
 module.exports.handler = serverless(app);

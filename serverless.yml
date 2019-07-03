@@ -1,14 +1,14 @@
-service: ns-foo-api
+service: example-api
 
 custom:
-  tableName: 'foo-table-${self:provider.stage}'
+  tableName: 'example-table-${self:provider.stage}'
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   stage: dev
   region: us-west-2
-  profile: ns-foo-deploy-api
+  profile: example-deploy
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -18,38 +18,32 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
       Resource:
-        - { "Fn::GetAtt": ["FooDynamoDBTable", "Arn" ] }
+        - { "Fn::GetAtt": ["ExampleDynamoDBTable", "Arn" ] }
   environment:
-    FOO_TABLE: ${self:custom.tableName}
-    ACCESS_KEY_ID: ${file(./config/secrets/lambda-credentials.json):accessKeyId}
-    SECRET_ACCESS_KEY: ${file(./config/secrets/lambda-credentials.json):secretAccessKey}
+    EXAMPLE_TABLE: ${self:custom.tableName}
+    LOGGING_LEVEL: "silly"
 
 functions:
-  app:
+  example:
     handler: src/index.handler
     events:
-      - http:
-          path: v1/foos
-          method: get
-          cors: true
-      - http:
-          path: v1/foos
-          method: post
-          cors: true
+      - http: ANY /
+      - http: 'ANY {proxy+}'
 
 resources:
   Resources:
-    FooDynamoDBTable:
+    ExampleDynamoDBTable:
       Type: 'AWS::DynamoDB::Table'
       Properties:
         AttributeDefinitions:
           -
-            AttributeName: fooId
+            AttributeName: id
             AttributeType: S
         KeySchema:
           -
-            AttributeName: fooId
+            AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
