@@ -13,7 +13,7 @@
     "cors": "^2.8.4",
     "dynamodb": "^1.1.1",
     "dynamoose": "^1.10.0",
-    "express": "^4.16.2",
+    "express": "^4.18.2",
     "express-winston": "^3.2.0",
     "serverless": "^1.46.1",
     "serverless-http": "^2.0.2",
